@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const { URL } = require('url');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,6 +13,28 @@ const sides = new Set(['Lula', 'Bolsonaro']);
 
 app.use(express.static(path.join(__dirname)));
 app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/youtube-search', async (req, res) => {
+  const query = String(req.query.q || '').trim().slice(0, 100);
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!query) return res.status(400).json({ error: 'Digite o nome da música.' });
+  if (!apiKey) return res.status(503).json({ error: 'missing_key' });
+  try {
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.search = new URLSearchParams({ part: 'snippet', type: 'video', videoEmbeddable: 'true', maxResults: '6', q: query, key: apiKey });
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!response.ok) return res.status(502).json({ error: 'A busca do YouTube não respondeu. Confira a chave da API no Render.' });
+    res.json((data.items || []).filter(item => item.id?.videoId).map(item => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channel: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails?.default?.url || ''
+    })));
+  } catch (error) {
+    console.error('Falha na busca do YouTube:', error.message);
+    res.status(502).json({ error: 'Não consegui buscar no YouTube agora.' });
+  }
+});
 
 function leaveWorld(socket) {
   const room = socket.data.room;
