@@ -1,1 +1,1 @@
-{"name":"praca-de-ideias","version":"1.0.0","private":true,"description":"Jogo de debate online com chat de texto","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.21.2","socket.io":"^4.8.1"},"engines":{"node":"20.x"}}
+{"name":"cidade-das-ideias-3d","version":"1.0.0","private":true,"description":"Cidade política 3D online com chat de texto e voz","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.21.2","socket.io":"^4.8.1","three":"^0.180.0"},"engines":{"node":"20.x"}}
