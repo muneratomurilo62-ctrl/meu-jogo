@@ -1,62 +1,36 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Explorador das Estrelas</title>
-  <style>
-    *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b1c;color:#f4f5ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-    body{display:grid;place-items:center;background:radial-gradient(ellipse at 50% 100%,#20204b 0,#0b1024 48%,#050713 100%)}
-    #game{position:relative;width:min(100vw,calc(100vh * 1.6));height:min(100vh,calc(100vw / 1.6));min-height:300px;overflow:hidden;background:#080b1c;border:1px solid #39416d;box-shadow:0 0 60px #6675ff22}
-    canvas{width:100%;height:100%;display:block}
-    .hud{position:absolute;inset:16px 18px auto;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;font-weight:700;text-shadow:0 2px 8px #000}
-    .badge{background:#0d1437bb;border:1px solid #6976bc66;border-radius:14px;padding:9px 14px;backdrop-filter:blur(8px);letter-spacing:.04em}.badge small{display:block;color:#aab4e8;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.badge span{font-size:20px}
-    .overlay{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(#080b1c66,#080b1caa);padding:20px;text-align:center}
-    .panel{width:min(440px,100%);padding:30px 28px 26px;border:1px solid #8190df55;border-radius:24px;background:#0b1130e8;box-shadow:0 20px 80px #0008;backdrop-filter:blur(12px)}
-    .eyebrow{color:#a8b7ff;font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}.panel h1{margin:8px 0 10px;font-size:clamp(28px,5vw,42px);line-height:1.05}.panel p{margin:0 auto 20px;max-width:350px;color:#c2c9e8;line-height:1.55;font-size:14px}
-    button{border:0;border-radius:13px;background:linear-gradient(135deg,#8b6dff,#42c5ff);color:#071027;font-size:15px;font-weight:900;padding:13px 25px;cursor:pointer;box-shadow:0 8px 24px #585dff55}button:hover{filter:brightness(1.12);transform:translateY(-1px)}
-    .help{margin-top:16px!important;margin-bottom:0!important;font-size:12px!important;color:#929fcf!important}.hidden{display:none}
-    .touch{position:absolute;inset:auto 0 14px;display:none;justify-content:space-between;padding:0 18px;pointer-events:none}.touch button{pointer-events:auto;width:58px;height:54px;padding:0;border-radius:16px;background:#192451cc;color:white;border:1px solid #8e9be766;font-size:23px;box-shadow:none;touch-action:none}
-    @media (pointer:coarse){.touch{display:flex}.help{margin-bottom:58px!important}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Praça de Ideias</title>
+<style>
+:root{--ink:#19312c;--paper:#fffaf0;--green:#2c7452;--lime:#d5ed9c;--orange:#f29b57;--blue:#263d58}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#e7e8d9;color:var(--ink);font-family:system-ui,Segoe UI,sans-serif}.wrap{max-width:1080px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#52685a}.brand b{display:block;color:var(--ink);font-size:25px;letter-spacing:-.04em;text-transform:none}.status{padding:8px 13px;border-radius:30px;background:#d6e8cf;color:#326143;font-weight:800;font-size:12px}.hero{background:var(--paper);border-radius:28px;padding:clamp(22px,5vw,48px);box-shadow:0 14px 35px #263a2512}.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:900;color:var(--green)}h1{font-size:clamp(35px,7vw,68px);letter-spacing:-.055em;line-height:.98;margin:12px 0}.lead{max-width:650px;color:#596b62;line-height:1.6}.layout{display:grid;grid-template-columns:330px 1fr;gap:18px;margin-top:22px}.card{background:#fffdf7;border:1px solid #d9dfcc;border-radius:21px;padding:20px}.card h2{font-size:16px;margin:0 0 15px}.field{margin:14px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:7px;color:#51635a}input,select{font:inherit;width:100%;padding:11px 12px;border:1px solid #cad3c2;background:white;border-radius:11px;color:var(--ink);outline-color:#70a67d}.choice{display:flex;gap:8px}.choice button{flex:1;padding:10px 6px;font-size:12px}button{border:0;border-radius:11px;padding:11px 15px;background:var(--green);color:white;font:inherit;font-weight:800;cursor:pointer}button:hover{filter:brightness(1.06)}button.secondary{background:#e7eddd;color:#345641}button.orange{background:var(--orange);color:#382316}.small{font-size:11px;color:#718078;line-height:1.5}.row{display:flex;gap:8px}.row input{min-width:0}.row button{white-space:nowrap}.roomline{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e6e9de;padding:0 0 13px;margin-bottom:13px}.roomtitle{font-weight:900}.players{color:#718078;font-size:12px}.prompt{background:#f2f3e7;border-radius:15px;padding:16px;margin:14px 0}.prompt strong{display:block;font-size:11px;color:#718078;text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px}.prompt p{margin:0;font-weight:800;font-size:19px;line-height:1.3}.chat{height:300px;overflow:auto;background:#fbfcf6;border:1px solid #e2e7d9;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:9px}.msg{max-width:90%;padding:10px 12px;background:#edf2e4;border-radius:12px 12px 12px 3px;font-size:13px;line-height:1.4;overflow-wrap:anywhere}.msg.mine{align-self:flex-end;background:#d9edbf;border-radius:12px 12px 3px 12px}.msg b{display:block;font-size:11px;margin-bottom:4px;color:#526c53}.sys{text-align:center;color:#8a9589;font-size:11px;padding:5px}.hidden{display:none!important}.pill{font-size:10px;border-radius:20px;background:#f6e5ce;color:#7b552e;padding:5px 8px;font-weight:900}.roomlist{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.roomtag{background:#edf1e4;border-radius:20px;padding:6px 10px;font-size:11px}.foot{text-align:center;color:#7c897e;font-size:11px;margin:20px}
+@media(max-width:760px){.wrap{padding:14px}.layout{grid-template-columns:1fr}.top{align-items:flex-start}.chat{height:260px}}
+</style>
 </head>
-<body>
-  <main id="game" aria-label="Jogo Explorador das Estrelas">
-    <canvas id="screen" aria-label="Campo de asteroides"></canvas>
-    <div class="hud"><div class="badge"><small>Pontuação</small><span id="score">0</span></div><div class="badge"><small>Recorde</small><span id="best">0</span></div></div>
-    <section class="overlay" id="startScreen"><div class="panel"><div class="eyebrow">Missão espacial</div><h1>Explorador<br>das Estrelas</h1><p>Pilote sua nave pelo cinturão de asteroides. Desvie das rochas e colete estrelas para bater seu recorde!</p><button id="startBtn">Começar missão</button><p class="help">Use ← → ou A / D para pilotar. No celular, use os botões.</p></div></section>
-    <section class="overlay hidden" id="gameOver"><div class="panel"><div class="eyebrow">Missão encerrada</div><h1>Boa viagem,<br>explorador!</h1><p id="finalScore">Você fez 0 pontos.</p><button id="againBtn">Tentar novamente</button><p class="help">Desvie dos asteroides e pegue as estrelas brilhantes.</p></div></section>
-    <div class="touch"><button id="leftBtn" aria-label="Mover para esquerda">←</button><button id="rightBtn" aria-label="Mover para direita">→</button></div>
-  </main>
-  <script>
-  (()=>{
-    const canvas=document.querySelector('#screen'),ctx=canvas.getContext('2d');
-    const scoreEl=document.querySelector('#score'),bestEl=document.querySelector('#best');
-    const startScreen=document.querySelector('#startScreen'),gameOver=document.querySelector('#gameOver');
-    let w=0,h=0,dpr=1,state='ready',score=0,best=Number(localStorage.getItem('estrelasBest')||0);
-    let ship,rocks=[],stars=[],particles=[],bgStars=[],last=0,spawn=0,starSpawn=0,speed=230,keys={};
-    bestEl.textContent=best;
-    function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);w=r.width;h=r.height;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);bgStars=Array.from({length:85},()=>({x:Math.random()*w,y:Math.random()*h,z:.25+Math.random()*.9,r:.5+Math.random()*1.4}));if(ship)ship.y=h-76}
-    addEventListener('resize',resize);resize();
-    function newGame(){score=0;speed=230;rocks=[];stars=[];particles=[];spawn=.4;starSpawn=1.2;ship={x:w/2,y:h-76,r:15};scoreEl.textContent='0';state='playing';startScreen.classList.add('hidden');gameOver.classList.add('hidden');last=performance.now();requestAnimationFrame(loop)}
-    function endGame(){state='over';if(score>best){best=score;localStorage.setItem('estrelasBest',best);bestEl.textContent=best}document.querySelector('#finalScore').textContent=`Você fez ${score} pontos e coletou ${Math.floor(score/10)} ${Math.floor(score/10)===1?'estrela':'estrelas'}.`;gameOver.classList.remove('hidden')}
-    document.querySelector('#startBtn').onclick=newGame;document.querySelector('#againBtn').onclick=newGame;
-    addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','a','A','d','D',' '].includes(e.key))e.preventDefault();keys[e.key.toLowerCase()]=true;if((e.key===' '||e.key==='Enter')&&state!=='playing')newGame()});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-    function bind(id,key){const b=document.querySelector(id);b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;b.setPointerCapture(e.pointerId)});for(const n of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(n,()=>keys[key]=false)}bind('#leftBtn','arrowleft');bind('#rightBtn','arrowright');
-    function polygon(x,y,r,points,rotation=0){ctx.beginPath();for(let i=0;i<points;i++){const a=rotation+i*Math.PI*2/points,rr=r*(.78+Math.sin(i*12.4)*.15+Math.cos(i*4.3)*.08);const px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath()}
-    function drawShip(){const s=ship;ctx.save();ctx.translate(s.x,s.y);ctx.shadowColor='#6ee7ff';ctx.shadowBlur=20;ctx.fillStyle='#93ecff';ctx.beginPath();ctx.moveTo(0,-21);ctx.lineTo(15,15);ctx.lineTo(0,9);ctx.lineTo(-15,15);ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#6156c9';ctx.beginPath();ctx.ellipse(0,-2,5,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffae65';ctx.beginPath();ctx.moveTo(-5,15);ctx.lineTo(0,25+Math.random()*6);ctx.lineTo(5,15);ctx.fill();ctx.restore()}
-    function drawRock(o){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);polygon(0,0,o.r,9);ctx.fillStyle='#77778c';ctx.fill();ctx.strokeStyle='#b0adc2';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#55556e';ctx.beginPath();ctx.arc(-o.r*.28,-o.r*.15,o.r*.18,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(o.r*.3,o.r*.25,o.r*.12,0,Math.PI*2);ctx.fill();ctx.restore()}
-    function drawStar(o){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.phase);ctx.shadowColor='#ffe879';ctx.shadowBlur=18;ctx.fillStyle='#ffe879';ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?o.r*.42:o.r;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.restore()}
-    function burst(x,y,color,count=12){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,v=35+Math.random()*140;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.45+Math.random()*.4,color,r:2+Math.random()*3})}}
-    function update(dt){if(state!=='playing')return;score+=dt*2;speed+=dt*3;scoreEl.textContent=Math.floor(score);const dir=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0);ship.x=Math.max(22,Math.min(w-22,ship.x+dir*360*dt));spawn-=dt;starSpawn-=dt;if(spawn<=0){const r=17+Math.random()*18;rocks.push({x:r+Math.random()*(w-r*2),y:-r,r,vy:speed*(.72+Math.random()*.55),rot:Math.random()*6,spin:(Math.random()-.5)*2});spawn=Math.max(.3,1.02-score/500)*(.65+Math.random()*.65)}if(starSpawn<=0){stars.push({x:25+Math.random()*(w-50),y:-20,r:11,vy:speed*.68,phase:0});starSpawn=2.5+Math.random()*2.2}
-      rocks.forEach(o=>{o.y+=o.vy*dt;o.rot+=o.spin*dt;if(Math.hypot(o.x-ship.x,o.y-ship.y)<o.r+11){burst(ship.x,ship.y,'#ff927c',22);endGame()}});rocks=rocks.filter(o=>o.y<h+50);
-      stars.forEach(o=>{o.y+=o.vy*dt;o.phase+=dt*2.2;if(Math.hypot(o.x-ship.x,o.y-ship.y)<o.r+12){score+=10;scoreEl.textContent=Math.floor(score);burst(o.x,o.y,'#ffe879',10);o.got=true}});stars=stars.filter(o=>!o.got&&o.y<h+30);
-      particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.98;p.vy*=.98;p.life-=dt});particles=particles.filter(p=>p.life>0)
-    }
-    function draw(dt){ctx.clearRect(0,0,w,h);const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'#080d26');grad.addColorStop(1,'#171b3d');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);bgStars.forEach(s=>{s.y+=s.z*24*dt;if(s.y>h)s.y=0;ctx.globalAlpha=.4+s.z*.55;ctx.fillStyle='#dbe4ff';ctx.beginPath();ctx.arc(s.x,s.y,s.r*s.z,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;ctx.strokeStyle='#aab5ff12';ctx.lineWidth=1;for(let i=0;i<5;i++){const y=(performance.now()*.025+i*h/5)%h;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}rocks.forEach(drawRock);stars.forEach(drawStar);particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;if(ship&&state==='playing')drawShip()}
-    function loop(now){if(state!=='playing')return;const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw(dt);if(state==='playing')requestAnimationFrame(loop)}
-    let idleLast=performance.now();function idle(now){const dt=Math.min(.04,(now-idleLast)/1000);idleLast=now;if(state!=='playing')draw(dt);requestAnimationFrame(idle)}requestAnimationFrame(idle);
-  })();
-  </script>
-</body>
-</html>
+<body><main class="wrap">
+<header class="top"><div class="brand">Jogo de conversa<b>Praça de Ideias</b></div><div class="status" id="net">Conectando...</div></header>
+<section class="hero"><div class="eyebrow">Debate com respeito · jogo online</div><h1>Suas ideias.<br>Seu jeito de jogar.</h1><p class="lead">Escolha uma roupa, monte seu personagem e converse sobre propostas para o Brasil. Aqui a disputa é pelas ideias: sem imitar políticos reais e sem torcida obrigatória.</p>
+<div class="layout"><aside class="card"><h2>Seu personagem</h2>
+<div class="field"><label for="name">Como quer ser chamado?</label><input id="name" maxlength="18" placeholder="Ex.: Ana" autocomplete="nickname"></div>
+<div class="field"><label>Escolha sua roupa</label><div class="choice"><button class="secondary outfit" data-outfit="camisa verde">🟢 Verde</button><button class="secondary outfit" data-outfit="camisa azul">🔵 Azul</button><button class="secondary outfit" data-outfit="camisa amarela">🟡 Amarela</button></div></div>
+<div class="field"><label for="idea">Qual ideia você defende?</label><select id="idea"><option>Mais investimento em educação</option><option>Mais empregos e apoio a pequenos negócios</option><option>Proteção da natureza e energia limpa</option><option>Melhorias na saúde pública</option><option>Segurança com prevenção e oportunidades</option></select></div>
+<div class="field"><label for="room">Código da sala</label><div class="row"><input id="room" maxlength="20" value="praca" placeholder="Ex.: praca"><button id="join">Entrar</button></div></div>
+<p class="small">Compartilhe o mesmo código com amigos para conversarem na mesma sala. Não use seu nome completo nem compartilhe informações pessoais.</p>
+<div class="roomlist" id="rooms"></div>
+</aside><section class="card"><div class="roomline"><div><div class="roomtitle" id="roomTitle">Praça de Ideias</div><div class="players" id="players">Entre em uma sala para começar</div></div><span class="pill">CHAT DE TEXTO</span></div>
+<div class="prompt"><strong>Desafio da rodada</strong><p id="challenge">Uma cidade tem pouco dinheiro. Qual melhoria deveria receber prioridade?</p></div>
+<div class="chat" id="chat"><div class="sys">Entre em uma sala para ver e enviar mensagens.</div></div>
+<form id="form" class="row" style="margin-top:10px"><input id="message" maxlength="240" placeholder="Escreva sua ideia com respeito..." disabled><button id="send" disabled>Enviar</button></form>
+<p class="small" style="margin-bottom:0">A conversa é compartilhada com quem estiver na mesma sala. O chat de voz ainda não está incluído nesta versão.</p>
+</section></div></section><div class="foot">Praça de Ideias — jogo fictício de debate e convivência.</div></main>
+<script src="/socket.io/socket.io.js"></script><script>
+(()=>{const socket=io();let outfit='camisa verde',joined=false,ownId='';const $=s=>document.querySelector(s),chat=$('#chat');
+socket.on('connect',()=>{$('#net').textContent='Servidor conectado';$('#net').style.background='#d6e8cf'});socket.on('disconnect',()=>{$('#net').textContent='Reconectando...';$('#net').style.background='#f6e5ce'});socket.on('connect_error',()=>{$('#net').textContent='Servidor indisponível'});
+document.querySelectorAll('.outfit').forEach(b=>b.onclick=()=>{outfit=b.dataset.outfit;document.querySelectorAll('.outfit').forEach(x=>x.className='secondary outfit');b.className='outfit'});
+function sys(t){const d=document.createElement('div');d.className='sys';d.textContent=t;chat.append(d);chat.scrollTop=chat.scrollHeight}
+function add(m){const d=document.createElement('div');d.className='msg'+(m.id===ownId?' mine':'');const b=document.createElement('b');b.textContent=m.name+' · '+m.outfit+' · '+m.idea;const t=document.createElement('span');t.textContent=m.text;d.append(b,t);chat.append(d);chat.scrollTop=chat.scrollHeight}
+$('#join').onclick=()=>{const room=$('#room').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,20);if(!room){$('#room').focus();return}const name=$('#name').value.trim().slice(0,18)||'Visitante';socket.emit('join',{room,name,outfit,idea:$('#idea').value});joined=true;$('#roomTitle').textContent='Sala: '+room;$('#message').disabled=false;$('#send').disabled=false;chat.innerHTML='';};
+$('#form').onsubmit=e=>{e.preventDefault();const text=$('#message').value.trim();if(text&&joined){socket.emit('message',text);$('#message').value=''}};
+socket.on('joined',data=>{ownId=data.id;sys('Você entrou na sala. Seja respeitoso e escute as outras ideias.');if(data.history)data.history.forEach(add);$('#players').textContent=data.count+' '+(data.count===1?'pessoa na sala':'pessoas na sala')});socket.on('message',add);socket.on('notice',sys);socket.on('count',n=>$('#players').textContent=n+' '+(n===1?'pessoa na sala':'pessoas na sala'));socket.on('history',items=>items.forEach(add));socket.on('challenge',x=>$('#challenge').textContent=x);
+})();
+</script></body></html>
