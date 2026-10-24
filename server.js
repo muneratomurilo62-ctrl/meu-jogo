@@ -34,7 +34,7 @@ io.on('connection', socket => {
     const name = String(payload?.name || 'Visitante').replace(/[<>]/g, '').trim().slice(0, 18) || 'Visitante';
     const side = sides.has(payload?.side) ? payload.side : 'Lula';
     const color = /^#[0-9a-f]{6}$/i.test(payload?.color) ? payload.color : (side === 'Lula' ? '#c64c42' : '#2e8a58');
-    const player = { id: socket.id, name, side, color, x: 0, z: 0, yaw: 0, inCar: false, carIndex: -1 };
+    const player = { id: socket.id, name, side, color, x: 0, z: 0, yaw: 0, inCar: false, carIndex: -1, signal: 0 };
     if (!worlds.has(room)) worlds.set(room, new Map());
     const world = worlds.get(room);
     world.set(socket.id, player);
@@ -51,11 +51,12 @@ io.on('connection', socket => {
     const world = worlds.get(room);
     const player = world?.get(socket.id);
     if (!player) return;
-    player.x = Math.max(0, Math.min(4000, pos.x));
-    player.z = Math.max(-4000, Math.min(4000, pos.z));
+    player.x = Math.max(-400, Math.min(400, pos.x));
+    player.z = Math.max(-400, Math.min(400, pos.z));
     player.yaw = Number.isFinite(pos.yaw) ? pos.yaw : 0;
     player.inCar = Boolean(pos.inCar);
     player.carIndex = Number.isInteger(pos.carIndex) ? Math.max(-1, Math.min(20, pos.carIndex)) : -1;
+    player.signal = [-1, 0, 1, 2].includes(pos.signal) ? pos.signal : 0;
     socket.to(room).emit('world:move', player);
   });
 
