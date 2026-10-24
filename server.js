@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const { randomUUID } = require('crypto');
 const { URL } = require('url');
 
 const app = express();
@@ -9,6 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 1e5 });
 const worlds = new Map();
 const voiceRooms = new Map();
+const worldObjects = new Map();
 const sides = new Set(['Lula', 'Bolsonaro']);
 
 app.use(express.static(path.join(__dirname)));
@@ -32,16 +34,19 @@ io.on('connection', socket => {
     leaveWorld(socket);
     const room = String(payload?.room || 'brasil').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20) || 'brasil';
     const name = String(payload?.name || 'Visitante').replace(/[<>]/g, '').trim().slice(0, 18) || 'Visitante';
+    const isAdmin = name.toLocaleLowerCase('pt-BR') === 'murilo 987';
     const side = sides.has(payload?.side) ? payload.side : 'Lula';
     const color = /^#[0-9a-f]{6}$/i.test(payload?.color) ? payload.color : (side === 'Lula' ? '#c64c42' : '#2e8a58');
-    const player = { id: socket.id, name, side, color, x: 0, z: 0, yaw: 0, inCar: false, carIndex: -1, signal: 0 };
+    const player = { id: socket.id, name, side, color, admin: isAdmin, x: 0, y: 0, z: 0, yaw: 0, inCar: false, carIndex: -1, signal: 0, fly: false };
     if (!worlds.has(room)) worlds.set(room, new Map());
     const world = worlds.get(room);
     world.set(socket.id, player);
     socket.join(room);
     socket.data.room = room;
     socket.data.player = player;
-    socket.emit('world:init', { id: socket.id, players: [...world.values()].filter(p => p.id !== socket.id) });
+    socket.data.isAdmin = isAdmin;
+    if (!worldObjects.has(room)) worldObjects.set(room, new Map());
+    socket.emit('world:init', { id: socket.id, admin: isAdmin, players: [...world.values()].filter(p => p.id !== socket.id), objects: [...worldObjects.get(room).values()] });
     socket.to(room).emit('world:join', player);
   });
 
@@ -53,11 +58,39 @@ io.on('connection', socket => {
     if (!player) return;
     player.x = Math.max(-400, Math.min(400, pos.x));
     player.z = Math.max(-400, Math.min(400, pos.z));
+    player.y = socket.data.isAdmin && pos.fly ? Math.max(0, Math.min(100, Number(pos.y) || 0)) : 0;
+    player.fly = Boolean(socket.data.isAdmin && pos.fly);
     player.yaw = Number.isFinite(pos.yaw) ? pos.yaw : 0;
     player.inCar = Boolean(pos.inCar);
     player.carIndex = Number.isInteger(pos.carIndex) ? Math.max(-1, Math.min(20, pos.carIndex)) : -1;
     player.signal = [-1, 0, 1, 2].includes(pos.signal) ? pos.signal : 0;
     socket.to(room).emit('world:move', player);
+  });
+
+  socket.on('admin:place', payload => {
+    const room = socket.data.room;
+    if (!room || !socket.data.isAdmin) return;
+    const kind = ['bench', 'tree', 'lamp'].includes(payload?.kind) ? payload.kind : null;
+    if (!kind || !Number.isFinite(payload?.x) || !Number.isFinite(payload?.z)) return;
+    const item = { id: randomUUID(), kind, x: Math.max(-320, Math.min(320, payload.x)), z: Math.max(-320, Math.min(320, payload.z)), angle: Number.isFinite(payload.angle) ? payload.angle : 0 };
+    worldObjects.get(room).set(item.id, item);
+    io.to(room).emit('admin:placed', item);
+  });
+
+  socket.on('admin:move-object', payload => {
+    const room = socket.data.room;
+    if (!room || !socket.data.isAdmin || !Number.isFinite(payload?.x) || !Number.isFinite(payload?.z)) return;
+    const item = worldObjects.get(room)?.get(payload.id);
+    if (!item) return;
+    item.x = Math.max(-320, Math.min(320, payload.x));
+    item.z = Math.max(-320, Math.min(320, payload.z));
+    io.to(room).emit('admin:moved', item);
+  });
+
+  socket.on('admin:remove-object', id => {
+    const room = socket.data.room;
+    if (!room || !socket.data.isAdmin) return;
+    if (worldObjects.get(room)?.delete(id)) io.to(room).emit('admin:removed', id);
   });
 
   socket.on('chat', raw => {
