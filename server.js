@@ -11,6 +11,7 @@ const io = new Server(server, { maxHttpBufferSize: 1e5 });
 const worlds = new Map();
 const voiceRooms = new Map();
 const worldObjects = new Map();
+const entityStates = new Map();
 const sides = new Set(['Lula', 'Bolsonaro']);
 
 app.use(express.static(path.join(__dirname)));
@@ -46,7 +47,8 @@ io.on('connection', socket => {
     socket.data.player = player;
     socket.data.isAdmin = isAdmin;
     if (!worldObjects.has(room)) worldObjects.set(room, new Map());
-    socket.emit('world:init', { id: socket.id, admin: isAdmin, players: [...world.values()].filter(p => p.id !== socket.id), objects: [...worldObjects.get(room).values()] });
+    if (!entityStates.has(room)) entityStates.set(room, new Map());
+    socket.emit('world:init', { id: socket.id, admin: isAdmin, players: [...world.values()].filter(p => p.id !== socket.id), objects: [...worldObjects.get(room).values()], entityStates: [...entityStates.get(room).values()] });
     socket.to(room).emit('world:join', player);
   });
 
@@ -56,13 +58,19 @@ io.on('connection', socket => {
     const world = worlds.get(room);
     const player = world?.get(socket.id);
     if (!player) return;
+    const requestedCar = Number.isInteger(pos.carIndex) ? pos.carIndex : -1;
+    if (pos.inCar && requestedCar >= 0 && entityStates.get(room)?.get(`car:${requestedCar}`)?.removed) return;
+    if (player.inCar && player.carIndex >= 0) {
+      const carState = entityStates.get(room)?.get(`car:${player.carIndex}`);
+      if (carState?.removed) { player.inCar = false; player.carIndex = -1; }
+    }
     player.x = Math.max(-400, Math.min(400, pos.x));
     player.z = Math.max(-400, Math.min(400, pos.z));
     player.y = socket.data.isAdmin && pos.fly ? Math.max(0, Math.min(100, Number(pos.y) || 0)) : 0;
     player.fly = Boolean(socket.data.isAdmin && pos.fly);
     player.yaw = Number.isFinite(pos.yaw) ? pos.yaw : 0;
-    player.inCar = Boolean(pos.inCar);
-    player.carIndex = Number.isInteger(pos.carIndex) ? Math.max(-1, Math.min(20, pos.carIndex)) : -1;
+    player.inCar = Boolean(pos.inCar && requestedCar >= 0);
+    player.carIndex = player.inCar ? Math.max(-1, Math.min(20, requestedCar)) : -1;
     player.signal = [-1, 0, 1, 2].includes(pos.signal) ? pos.signal : 0;
     socket.to(room).emit('world:move', player);
   });
@@ -91,6 +99,36 @@ io.on('connection', socket => {
     const room = socket.data.room;
     if (!room || !socket.data.isAdmin) return;
     if (worldObjects.get(room)?.delete(id)) io.to(room).emit('admin:removed', id);
+  });
+
+  socket.on('admin:move-entity', payload => {
+    const room = socket.data.room;
+    if (!room || !socket.data.isAdmin || typeof payload?.id !== 'string' || payload.id.length > 100 || !Number.isFinite(payload?.x) || !Number.isFinite(payload?.z)) return;
+    if (!entityStates.has(room)) entityStates.set(room, new Map());
+    const state = { id: payload.id, x: Math.max(-320, Math.min(320, payload.x)), z: Math.max(-320, Math.min(320, payload.z)), removed: false };
+    entityStates.get(room).set(state.id, state);
+    io.to(room).emit('admin:entity-moved', state);
+  });
+
+  socket.on('admin:delete-entity', id => {
+    const room = socket.data.room;
+    if (!room || !socket.data.isAdmin || typeof id !== 'string' || id.length > 100) return;
+    if (!entityStates.has(room)) entityStates.set(room, new Map());
+    const carMatch = /^car:(\d+)$/.exec(id);
+    if (carMatch) {
+      const index = Number(carMatch[1]);
+      worlds.get(room)?.forEach(player => {
+        if (player.inCar && player.carIndex === index) { player.inCar = false; player.carIndex = -1; player.y = 0; }
+      });
+    }
+    const state = { id, removed: true };
+    entityStates.get(room).set(id, state);
+    io.to(room).emit('admin:entity-deleted', id);
+  });
+
+  socket.on('admin:music', active => {
+    if (!socket.data.room || !socket.data.isAdmin) return;
+    socket.to(socket.data.room).emit('admin:music-state', Boolean(active));
   });
 
   socket.on('chat', raw => {
